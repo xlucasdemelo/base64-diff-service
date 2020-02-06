@@ -47,7 +47,7 @@ public class DiffServiceTest {
 		final Diff diff = new Diff(100L, "abc", null);
 
 		Mockito.when(diffRepository.save(any(Diff.class))).thenReturn(diff);
-		this.diffService.saveDiff(diff, DiffConstants.LEFT);
+		this.diffService.saveDiff(100L, "abc", DiffConstants.LEFT);
 
 		assertThat(diff, notNullValue());
 		assertThat(diff.getLeftDirection(), notNullValue());
@@ -56,18 +56,14 @@ public class DiffServiceTest {
 	
 	@Test(expected = DirectionAlreadyExistsException.class)
 	public void testOverrideLeftOfExistentDiffShouldThrowException() throws DiffException {
-		final Diff diff = new Diff(100L, "abc", null);
-
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new Diff(100L, "abcde", null )));
-		this.diffService.saveDiff(diff, DiffConstants.LEFT);
+		this.diffService.saveDiff(100L, "abc", DiffConstants.LEFT);
 	}
 	
 	@Test(expected = DirectionAlreadyExistsException.class)
 	public void testOverrideRightOfExistentDiffShouldThrowException() throws DiffException {
-		final Diff diff = new Diff(100L, null, "abc");
-
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new Diff(100L, null, "abcde")));
-		this.diffService.saveDiff(diff, DiffConstants.RIGHT);
+		this.diffService.saveDiff(100L, "abc", DiffConstants.RIGHT);
 	}
 	
 	@Test
@@ -75,7 +71,7 @@ public class DiffServiceTest {
 		final Diff diff = new Diff(100L, null, "abc");
 
 		Mockito.when(diffRepository.save(any(Diff.class))).thenReturn(diff);
-		this.diffService.saveDiff(diff, DiffConstants.RIGHT);
+		this.diffService.saveDiff(100L, "abc", DiffConstants.RIGHT);
 
 		assertThat(diff, notNullValue());
 		assertThat(diff.getRightDirection(), notNullValue());

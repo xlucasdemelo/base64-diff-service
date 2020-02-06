@@ -2,9 +2,9 @@ package com.lucas.waes.diffservice.service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,49 +31,42 @@ public class DiffServiceImpl implements DiffService{
 	/**
 	 * 
 	 */
-	public Diff saveDiff(Diff diff, String direction) throws DiffException {
-		
+	public Diff saveDiff(Long id, String payload, String direction) throws DiffException {
 		/**
 		 * I am assuming the directions of a diff cannot be changed
 		 * This method will check if the request is trying to override a direction of a existent diff
 		 */
-		this.checkDirectionAlreadyExistsInDiff(diff, direction);
+		this.checkDirectionAlreadyExistsInDiff(id, direction);
 		
-		/**
-		 * These two ifs will make sure only the direction of the select route will be updated
-		 */
-		if (direction == DiffConstants.LEFT) {
-			this.saveLeft(diff);
-			log.info("Saving LEFT direction");
-		}
-		else if (direction == DiffConstants.RIGHT) {
-			this.saveRight(diff);
-			log.info("Saving RIGHT direction");
-		}
+		final Diff diff = createDiffWithDirection(id, payload, direction);
 		
+		log.info("Saving... {}", diff.toString());
 		return this.diffRepository.save(diff);
 	}
 	
-	private void saveLeft(Diff diff){
-		final String left = diff.getLeftDirection();
-		diff = new Diff();
-		diff.setLeftDirection(left);
-	}
-	
-	private void saveRight(Diff diff){
-		final String right = diff.getRightDirection();
-		diff = new Diff();
-		diff.setRightDirection(right);
+	private Diff createDiffWithDirection(Long id, String payload, String direction) {
+		final Diff diff = new Diff(id);
+		
+		if (direction == DiffConstants.LEFT) {
+			diff.setLeftDirection(payload);
+		}
+		else if (direction == DiffConstants.RIGHT) {
+			diff.setLeftDirection(payload);
+		}
+		
+		return diff;
 	}
 	
 	/**
 	 * @param diff
 	 * @param direction
 	 */
-	private void checkDirectionAlreadyExistsInDiff(Diff diff, String direction) throws DiffException {
-		final Optional<Diff> existentDiff = this.diffRepository.findById(diff.getId());
+	private void checkDirectionAlreadyExistsInDiff(Long id, String direction) throws DiffException {
+		final Optional<Diff> optionalDiff = this.diffRepository.findById(id);
 				
-		if (existentDiff.isPresent()) {
+		if (optionalDiff.isPresent()) {
+			final Diff diff = optionalDiff.get();
+			
 			if (direction == DiffConstants.LEFT) {
 				if (diff.getLeftDirection() != null ) {
 					log.info("Cannot override a direction");
@@ -95,7 +88,7 @@ public class DiffServiceImpl implements DiffService{
 	 * 
 	 */
 	public DiffResponse performDiff( Long diffId ) throws DiffException {
-		log.info("Performing diff for id: {}", diffId);
+		log.info("Performing diff...", diffId);
 		final Diff diff = this.diffRepository.findById(diffId).orElseThrow( () -> new DiffNotFoundException() );
 		
 		//Only will perform the diff if both directions are registered
