@@ -16,7 +16,10 @@ public class Diff {
 	@Id
 	private Long id;
 	
-	private String right;
+	private String leftDirection;
+	private String rightDirection;
 	
-	private String left;
+	public Diff(Long id) {
+		this.id = id;
+	}
 }

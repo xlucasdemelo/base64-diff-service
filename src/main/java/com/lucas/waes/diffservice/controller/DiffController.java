@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.lucas.waes.diffservice.domain.Diff;
 import com.lucas.waes.diffservice.domain.DiffResponse;
+import com.lucas.waes.diffservice.exception.DiffException;
 import com.lucas.waes.diffservice.service.DiffServiceImpl;
 
 @RestController
@@ -24,14 +25,14 @@ public class DiffController {
 		return null;
 	}
 	
-	@GetMapping("/{id}/left")
+	@GetMapping("/{id}/right")
 	public ResponseEntity<Diff> saveRight( @PathVariable("id") Long id, String payload){
 		return null;
 	}
 	
 	@PostMapping("/{id}")
-	public ResponseEntity<DiffResponse> diff(@PathVariable("id") Long id){
-		final DiffResponse diffResult = this.diffService.diff(id);
+	public ResponseEntity<DiffResponse> diff(@PathVariable("id") Long id) throws DiffException{
+		final DiffResponse diffResult = this.diffService.performDiff(id);
 		return new ResponseEntity<DiffResponse>(diffResult, HttpStatus.OK);
 	}
 }	
