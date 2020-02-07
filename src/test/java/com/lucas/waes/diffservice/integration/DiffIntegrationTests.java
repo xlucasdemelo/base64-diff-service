@@ -25,12 +25,22 @@ public class DiffIntegrationTests {
     MockMvc mockMvc;
 
     @Test
-    public void sendLeftPayloadShouldReturnDiff() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.post("/v1/diff/100/left")
+    public void sendLeftPayloadShouldReturnCreatedDiff() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/v1/diff/1/left")
                 .content(Base64.getEncoder().encodeToString("abcd".getBytes()))
                 .contentType(MediaType.APPLICATION_JSON)
                 
         ).andExpect(status().is2xxSuccessful());
     }
-	
+    
+    @Test
+    public void sendRightPayloadShouldReturnCreatedDiff() throws Exception {
+        mockMvc.perform(MockMvcRequestBuilders.post("/v1/diff/2/right")
+                .content(Base64.getEncoder().encodeToString("abcd".getBytes()))
+                .contentType(MediaType.APPLICATION_JSON)
+                
+        ).andExpect(status().is2xxSuccessful());
+    }
+    
 }
+

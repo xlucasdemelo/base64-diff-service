@@ -30,8 +30,10 @@ public class DiffController {
 	}
 	
 	@PostMapping("/{id}/right")
-	public ResponseEntity<Diff> saveRight( @PathVariable("id") Long id, @RequestBody String payload) throws DiffException{
-		return null;
+	public ResponseEntity<Diff> saveRight( @PathVariable("id") Long id, @RequestBody() String payload) throws DiffException{
+		MDC.put("diffId", id.toString());
+		final Diff diffResult = this.diffService.saveDiff(id, payload, DiffConstants.RIGHT);
+		return new ResponseEntity<Diff>(diffResult, HttpStatus.OK);
 	}
 	
 	@PostMapping("/{id}")

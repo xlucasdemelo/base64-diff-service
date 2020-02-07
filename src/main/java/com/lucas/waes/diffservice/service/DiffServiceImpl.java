@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,7 +50,7 @@ public class DiffServiceImpl implements DiffService{
 			diff.setLeftDirection(payload);
 		}
 		else if (direction == DiffConstants.RIGHT) {
-			diff.setLeftDirection(payload);
+			diff.setRightDirection(payload);
 		}
 		
 		return diff;
