@@ -13,7 +13,6 @@ public class DiffResponse {
 	private DiffResponseReason reason;
 	
 	private List<DiffOffset> diffOffsets = new ArrayList<DiffOffset>();
-	private Integer length;
 	
 	public DiffResponse(DiffResponseReason reason) {
 		super();

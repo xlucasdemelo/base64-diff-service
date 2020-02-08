@@ -31,20 +31,27 @@ public class DiffServiceImpl implements DiffService{
 	 * 
 	 */
 	public Diff saveDiff(Long id, String payload, String direction) throws DiffException {
+		
+		final Optional<Diff> dbDiff = this.diffRepository.findById(id);
+		
 		/**
 		 * I am assuming the directions of a diff cannot be changed
 		 * This method will check if the request is trying to override a direction of a existent diff
 		 */
-		this.checkDirectionAlreadyExistsInDiff(id, direction);
+		this.checkDirectionAlreadyExistsInDiff(dbDiff, id, direction);
 		
-		final Diff diff = createDiffWithDirection(id, payload, direction);
+		final Diff diff = createDiffWithDirection(dbDiff, id, payload, direction);
 		
 		log.info("Saving... {}", diff.toString());
 		return this.diffRepository.save(diff);
 	}
 	
-	private Diff createDiffWithDirection(Long id, String payload, String direction) {
-		final Diff diff = new Diff(id);
+	private Diff createDiffWithDirection(Optional<Diff> optionalDiff, Long id, String payload, String direction) {
+		Diff diff = new Diff(id);
+		
+		if (optionalDiff.isPresent()) {
+			diff = optionalDiff.get();
+		}
 		
 		if (direction == DiffConstants.LEFT) {
 			diff.setLeftDirection(payload);
@@ -60,9 +67,7 @@ public class DiffServiceImpl implements DiffService{
 	 * @param diff
 	 * @param direction
 	 */
-	private void checkDirectionAlreadyExistsInDiff(Long id, String direction) throws DiffException {
-		final Optional<Diff> optionalDiff = this.diffRepository.findById(id);
-				
+	private void checkDirectionAlreadyExistsInDiff(Optional<Diff> optionalDiff, Long id, String direction) throws DiffException {
 		if (optionalDiff.isPresent()) {
 			final Diff diff = optionalDiff.get();
 			
