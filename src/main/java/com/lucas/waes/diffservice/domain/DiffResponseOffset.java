@@ -8,13 +8,13 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class DiffResponse {
+public class DiffResponseOffset {
 	
 	private DiffResponseReason reason;
 	
-	private List<DiffOffset> diffOffsets = new ArrayList<DiffOffset>();
+	private List<Offset> Offsets = new ArrayList<Offset>();
 	
-	public DiffResponse(DiffResponseReason reason) {
+	public DiffResponseOffset(DiffResponseReason reason) {
 		super();
 		this.reason = reason;
 	}

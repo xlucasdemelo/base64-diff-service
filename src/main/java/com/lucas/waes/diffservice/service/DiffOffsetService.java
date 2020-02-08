@@ -1,38 +1,35 @@
 package com.lucas.waes.diffservice.service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.lucas.waes.diffservice.domain.Diff;
 import com.lucas.waes.diffservice.domain.DiffOffset;
-import com.lucas.waes.diffservice.domain.DiffResponse;
+import com.lucas.waes.diffservice.domain.DiffResponseOffset;
 import com.lucas.waes.diffservice.domain.DiffResponseReason;
 import com.lucas.waes.diffservice.exception.DiffException;
 import com.lucas.waes.diffservice.exception.DiffNotFoundException;
 import com.lucas.waes.diffservice.exception.DirectionAlreadyExistsException;
 import com.lucas.waes.diffservice.exception.DirectionIsNullException;
-import com.lucas.waes.diffservice.repository.DiffRepository;
+import com.lucas.waes.diffservice.repository.DiffOffsetRepository;
 import com.lucas.waes.diffservice.util.DiffConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class DiffServiceImpl implements DiffService{
+public class DiffOffsetService{
 	
 	@Autowired
-	private DiffRepository diffRepository;
+	private DiffOffsetRepository diffRepository;
 	
 	/**
 	 * 
 	 */
-	public Diff saveDiff(Long id, String payload, String direction) throws DiffException {
+	public DiffOffset saveDiff(Long id, String payload, String direction) throws DiffException {
 		
-		final Optional<Diff> dbDiff = this.diffRepository.findById(id);
+		final Optional<DiffOffset> dbDiff = this.diffRepository.findById(id);
 		
 		/**
 		 * I am assuming the directions of a diff cannot be changed
@@ -40,14 +37,14 @@ public class DiffServiceImpl implements DiffService{
 		 */
 		this.checkDirectionAlreadyExistsInDiff(dbDiff, id, direction);
 		
-		final Diff diff = createDiffWithDirection(dbDiff, id, payload, direction);
+		final DiffOffset diff = createDiffWithDirection(dbDiff, id, payload, direction);
 		
 		log.info("Saving... {}", diff.toString());
 		return this.diffRepository.save(diff);
 	}
 	
-	private Diff createDiffWithDirection(Optional<Diff> optionalDiff, Long id, String payload, String direction) {
-		Diff diff = new Diff(id);
+	private DiffOffset createDiffWithDirection(Optional<DiffOffset> optionalDiff, Long id, String payload, String direction) {
+		DiffOffset diff = new DiffOffset(id);
 		
 		if (optionalDiff.isPresent()) {
 			diff = optionalDiff.get();
@@ -67,9 +64,9 @@ public class DiffServiceImpl implements DiffService{
 	 * @param diff
 	 * @param direction
 	 */
-	private void checkDirectionAlreadyExistsInDiff(Optional<Diff> optionalDiff, Long id, String direction) throws DiffException {
+	private void checkDirectionAlreadyExistsInDiff(Optional<DiffOffset> optionalDiff, Long id, String direction) throws DiffException {
 		if (optionalDiff.isPresent()) {
-			final Diff diff = optionalDiff.get();
+			final DiffOffset diff = optionalDiff.get();
 			
 			if (direction == DiffConstants.LEFT) {
 				if (diff.getLeftDirection() != null ) {
@@ -91,21 +88,21 @@ public class DiffServiceImpl implements DiffService{
 	 * @throws DiffNotFoundException 
 	 * 
 	 */
-	public DiffResponse performDiff( Long diffId ) throws DiffException {
+	public DiffResponseOffset performDiff( Long diffId ) throws DiffException {
 		log.info("Performing diff...", diffId);
-		final Diff diff = this.diffRepository.findById(diffId).orElseThrow( () -> new DiffNotFoundException() );
+		final DiffOffset diff = this.diffRepository.findById(diffId).orElseThrow( () -> new DiffNotFoundException() );
 		
 		//Only will perform the diff if both directions are registered
 		this.validateCanPerformDiff(diff);
 		
 		if (this.leftAndRightEquals(diff)) {
-			return new DiffResponse(DiffResponseReason.EQUALS);
+			return new DiffResponseOffset(DiffResponseReason.EQUALS);
 		}
 		else if (!this.leftAndRightSizeEquals(diff)){
-			return new DiffResponse(DiffResponseReason.NOT_EQUAL_SIZES);
+			return new DiffResponseOffset(DiffResponseReason.NOT_EQUAL_SIZES);
 		}
 		
-		return this.calculateOffset(diff);
+		return diff.performDiff();
 	}
 	
 	/**
@@ -113,7 +110,7 @@ public class DiffServiceImpl implements DiffService{
 	 * @param diff
 	 * @return
 	 */
-	private boolean leftAndRightEquals(Diff diff) {
+	private boolean leftAndRightEquals(DiffOffset diff) {
 		return diff.getRightDirection().equals(diff.getLeftDirection());
 	}
 	
@@ -122,7 +119,7 @@ public class DiffServiceImpl implements DiffService{
 	 * @param diff
 	 * @return
 	 */
-	private boolean leftAndRightSizeEquals(Diff diff) {
+	private boolean leftAndRightSizeEquals(DiffOffset diff) {
 		return diff.getRightDirection().length() == diff.getLeftDirection().length();
 	}
 	
@@ -131,45 +128,11 @@ public class DiffServiceImpl implements DiffService{
 	 * @param diff
 	 * @throws DiffException
 	 */
-	private void validateCanPerformDiff(Diff diff) throws DiffException {
+	private void validateCanPerformDiff(DiffOffset diff) throws DiffException {
 		if (diff.getLeftDirection() == null || diff.getRightDirection() == null ) {
 			log.info("Any of the directions is null, cannot perform the diff");
 			throw new DirectionIsNullException();
 		}
-	}
-	
-	/**
-	 * 
-	 * @param diff
-	 * @return
-	 */
-	private DiffResponse calculateOffset(Diff diff) {
-		log.info("Calculating offset for id: {} ", diff.getId());
-		final DiffResponse diffResult = new DiffResponse(DiffResponseReason.DIFFERENT_PAYLOADS);
-		
-		Integer offset = null;
-        Integer length = 0;
-        
-        List<DiffOffset> diffOffsets = new ArrayList<DiffOffset>();
-        
-        for(int i = 0; i < diff.getLeftDirection().length(); i++){
-            if(diff.getLeftDirection().charAt(i) != diff.getRightDirection().charAt(i)){
-                if(offset == null){
-                    offset = i;
-                }
-                length++;
-            } else {
-            	if (offset != null) {
-            		diffOffsets.add( new DiffOffset(offset, length) );
-            	}
-                offset = null;
-                length = 0;
-            }
-        }
-		
-        diffResult.setDiffOffsets(diffOffsets);
-        log.info("Offset list of diff: {} is {}", diff.getId(), diffResult.toString());
-		return diffResult;
 	}
 	
 }

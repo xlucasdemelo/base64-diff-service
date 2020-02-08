@@ -67,7 +67,7 @@ public class DiffIntegrationTests {
     	this.mockMvc.perform(MockMvcRequestBuilders.get("/v1/diff/100")
         )
     	.andExpect( status().is2xxSuccessful())
-    	.andExpect(content().json("{\"reason\":\"EQUALS\",\"diffOffsets\":[]}"));
+    	.andExpect(content().json("{\"reason\":\"EQUALS\",\"offsets\":[]}"));
     }
     
     @Test
@@ -76,7 +76,7 @@ public class DiffIntegrationTests {
     	this.mockMvc.perform(MockMvcRequestBuilders.get("/v1/diff/101")
         )
     	.andExpect( status().is2xxSuccessful())
-    	.andExpect(content().json("{\"reason\":\"NOT_EQUAL_SIZES\",\"diffOffsets\":[]}"));
+    	.andExpect(content().json("{\"reason\":\"NOT_EQUAL_SIZES\",\"offsets\":[]}"));
     }
     
     @Test
@@ -85,7 +85,7 @@ public class DiffIntegrationTests {
     	this.mockMvc.perform(MockMvcRequestBuilders.get("/v1/diff/102")
         )
     	.andExpect( status().is2xxSuccessful())
-    	.andExpect(content().json("{\"reason\":\"DIFFERENT_PAYLOADS\",\"diffOffsets\":[{\"offset\":1,\"length\":1},{\"offset\":3}]}"));
+    	.andExpect(content().json("{\"reason\":\"DIFFERENT_PAYLOADS\",\"offsets\":[{\"offset\":1,\"length\":1},{\"offset\":3}]}"));
     }
     
     @Test
