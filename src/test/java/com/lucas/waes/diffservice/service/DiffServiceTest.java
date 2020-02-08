@@ -26,11 +26,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 import com.lucas.waes.diffservice.domain.DiffOffset;
 import com.lucas.waes.diffservice.domain.DiffResponseOffset;
 import com.lucas.waes.diffservice.domain.DiffResponseReason;
+import com.lucas.waes.diffservice.domain.Direction;
+import com.lucas.waes.diffservice.exception.Base64ValidationException;
 import com.lucas.waes.diffservice.exception.DiffException;
 import com.lucas.waes.diffservice.exception.DirectionAlreadyExistsException;
 import com.lucas.waes.diffservice.exception.DirectionIsNullException;
 import com.lucas.waes.diffservice.repository.DiffOffsetRepository;
-import com.lucas.waes.diffservice.util.DiffConstants;
 
 @RunWith(MockitoJUnitRunner.class)
 public class DiffServiceTest {
@@ -47,7 +48,7 @@ public class DiffServiceTest {
 		final DiffOffset diff = new DiffOffset(100L, "abc", null);
 
 		Mockito.when(diffRepository.save(any(DiffOffset.class))).thenReturn(diff);
-		this.diffService.saveDiff(100L, "abc", DiffConstants.LEFT);
+		this.diffService.saveDiff(100L, "abc", Direction.LEFT);
 
 		assertThat(diff, notNullValue());
 		assertThat(diff.getLeftDirection(), notNullValue());
@@ -57,13 +58,29 @@ public class DiffServiceTest {
 	@Test(expected = DirectionAlreadyExistsException.class)
 	public void testOverrideLeftOfExistentDiffShouldThrowException() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "abcde", null )));
-		this.diffService.saveDiff(100L, "abc", DiffConstants.LEFT);
+		this.diffService.saveDiff(100L, "abc", Direction.LEFT);
 	}
 	
 	@Test(expected = DirectionAlreadyExistsException.class)
 	public void testOverrideRightOfExistentDiffShouldThrowException() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, null, "abcde")));
-		this.diffService.saveDiff(100L, "abc", DiffConstants.RIGHT);
+		this.diffService.saveDiff(100L, "abc", Direction.RIGHT);
+	}
+	
+	@Test
+	public void testSaveRightOnExistentDiff() throws DiffException {
+		Mockito.when(diffRepository.save(any(DiffOffset.class))).thenReturn(new DiffOffset(100L, "abc", "abc"));
+		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "abcde", null)));
+		final DiffOffset diff = this.diffService.saveDiff(100L, "abc", Direction.RIGHT);
+		
+		assertThat(diff, notNullValue());
+		assertThat(diff.getRightDirection(), notNullValue());
+		assertThat(diff.getLeftDirection(), notNullValue());
+	}
+	
+	@Test(expected = Base64ValidationException.class)
+	public void testSaveInvalidBase64() throws DiffException {
+		this.diffService.saveDiff(100L, "	的", Direction.RIGHT);
 	}
 	
 	@Test
@@ -71,7 +88,7 @@ public class DiffServiceTest {
 		final DiffOffset diff = new DiffOffset(100L, null, "abc");
 
 		Mockito.when(diffRepository.save(any(DiffOffset.class))).thenReturn(diff);
-		this.diffService.saveDiff(100L, "abc", DiffConstants.RIGHT);
+		this.diffService.saveDiff(100L, "abc", Direction.RIGHT);
 
 		assertThat(diff, notNullValue());
 		assertThat(diff.getRightDirection(), notNullValue());
@@ -89,8 +106,14 @@ public class DiffServiceTest {
 	}
 	
 	@Test(expected = DirectionIsNullException.class)
-	public void testNullStringShouldThrowExceptiont() throws DiffException {
+	public void testPErformDiffWithNullLeftShouldThrowException() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, null, "abcde")));
+		this.diffService.performDiff(100L);
+	}
+	
+	@Test(expected = DirectionIsNullException.class)
+	public void testPErformDiffWithNullRightShouldThrowException() throws DiffException {
+		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "abcde", null)));
 		this.diffService.performDiff(100L);
 	}
 	
