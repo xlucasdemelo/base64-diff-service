@@ -85,7 +85,7 @@ public class DiffIntegrationTests {
     	this.mockMvc.perform(MockMvcRequestBuilders.get("/v1/diff/102")
         )
     	.andExpect( status().is2xxSuccessful())
-    	.andExpect(content().json("{\"reason\":\"DIFFERENT_PAYLOADS\",\"offsets\":[{\"offset\":1,\"length\":1},{\"offset\":3}]}"));
+    	.andExpect(content().json("{\"reason\":\"DIFFERENT_PAYLOADS\",\"offsets\":[{\"offset\":2,\"length\":2},{\"offset\":6}]}"));
     }
     
     @Test

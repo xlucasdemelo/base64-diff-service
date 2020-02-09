@@ -49,8 +49,9 @@ public class DiffOffset implements Diff{
         
         List<Offset> diffOffsets = new ArrayList<Offset>();
         
-        for(int i = 0; i < this.leftDirection.length(); i++){
-            if(this.leftDirection.charAt(i) != this.rightDirection.charAt(i)){
+        for(int i = 0; i <= this.leftDirection.length(); i++){
+            if( i < this.leftDirection.length() && this.leftDirection.charAt(i) != this.rightDirection.charAt(i)
+            	){
                 if(offset == null){
                     offset = i;
                 }
