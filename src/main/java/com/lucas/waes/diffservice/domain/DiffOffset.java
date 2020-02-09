@@ -13,12 +13,18 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Entity that will perform a diff based on the offset of two directions: LEFT and RIGHT
+ * 
+ * @author lucas
+ *
+ */
 @Slf4j
 @Data
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-public class DiffOffset implements DiffInterface{
+public class DiffOffset implements Diff{
 	
 	@Id
 	private Long id;
@@ -29,11 +35,14 @@ public class DiffOffset implements DiffInterface{
 	public DiffOffset(Long id) {
 		this.id = id;
 	}
-
-	public DiffResponseOffset performDiff() throws DiffException {
+	
+	/**
+	 * Logic of the diff based on the offset and length of two directions strings
+	 */
+	public DiffOffsetResponseDTO performDiff() throws DiffException {
 		
 		log.info("Calculating offset for id: {} ", this.id);
-		final DiffResponseOffset diffResult = new DiffResponseOffset(DiffResponseReason.DIFFERENT_PAYLOADS);
+		final DiffOffsetResponseDTO diffResult = new DiffOffsetResponseDTO(DiffResponseReason.DIFFERENT_PAYLOADS);
 		
 		Integer offset = null;
         Integer length = 0;
@@ -59,5 +68,4 @@ public class DiffOffset implements DiffInterface{
         log.info("Offset list of diff: {} is {}", this.id, diffResult.toString());
 		return diffResult;
 	}
-	
 }

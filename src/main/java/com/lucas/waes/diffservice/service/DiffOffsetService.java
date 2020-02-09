@@ -6,8 +6,9 @@ import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.lucas.waes.diffservice.domain.Diff;
 import com.lucas.waes.diffservice.domain.DiffOffset;
-import com.lucas.waes.diffservice.domain.DiffResponseOffset;
+import com.lucas.waes.diffservice.domain.DiffOffsetResponseDTO;
 import com.lucas.waes.diffservice.domain.DiffResponseReason;
 import com.lucas.waes.diffservice.domain.Direction;
 import com.lucas.waes.diffservice.exception.Base64ValidationException;
@@ -16,20 +17,29 @@ import com.lucas.waes.diffservice.exception.DiffNotFoundException;
 import com.lucas.waes.diffservice.exception.DirectionAlreadyExistsException;
 import com.lucas.waes.diffservice.exception.DirectionIsNullException;
 import com.lucas.waes.diffservice.repository.DiffOffsetRepository;
+import com.lucas.waes.diffservice.util.DiffConstants;
 
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Implementation of {@link DiffService}
+ * 
+ * Class that held the business logic of DiffOffset methods
+ * 
+ * @author lucas
+ *
+ */
 @Slf4j
 @Service
-public class DiffOffsetService{
+public class DiffOffsetService implements DiffService{
 	
 	@Autowired
 	private DiffOffsetRepository diffRepository;
 	
 	/**
-	 * 
+	 * Method that will save a Diff data accordling to specified direction
 	 */
-	public DiffOffset saveDiff(Long id, String payload, Direction direction) throws DiffException {
+	public Diff saveDiff(Long id, String payload, Direction direction) throws DiffException {
 		this.checkStringIsBase64(payload);
 		final Optional<DiffOffset> dbDiff = this.diffRepository.findById(id);
 		
@@ -41,18 +51,32 @@ public class DiffOffsetService{
 		
 		final DiffOffset diff = createDiffWithDirection(dbDiff, id, payload, direction);
 		
-		log.info("Saving... {}", diff.toString());
-		return this.diffRepository.save(diff);
+		log.info(DiffConstants.SAVING_DIFF, diff.toString());
+		return (Diff)this.diffRepository.save(diff);
 	}
 	
+	/**
+	 * This method checks if the payload is a Base 64 valid data 
+	 * 
+	 * @param payload
+	 * @throws DiffException
+	 */
 	private void checkStringIsBase64(String payload) throws DiffException {
-		if (!Base64.isBase64(payload))
-		{
-			log.info("Invalid Base64 payload");
+		if (!Base64.isBase64(payload)){
+			log.info(DiffConstants.INVALID_BASE64_PAYLOAD);
 			throw new Base64ValidationException();
 		}
 	}
 	
+	/**
+	 * This method creates a Diff object for the specified direction 
+	 * 
+	 * @param optionalDiff
+	 * @param id
+	 * @param payload
+	 * @param direction
+	 * @return
+	 */
 	private DiffOffset createDiffWithDirection(Optional<DiffOffset> optionalDiff, Long id, String payload, Direction direction) {
 		DiffOffset diff = new DiffOffset(id);
 		
@@ -71,8 +95,12 @@ public class DiffOffsetService{
 	}
 	
 	/**
-	 * @param diff
+	 * I am assuming the directions of a diff cannot be changed.
+     * This method will check if the request is trying to override a direction of a existent diff
+	 * 
+	 * @param optionalDiff
 	 * @param direction
+	 * @throws DiffException
 	 */
 	private void checkDirectionAlreadyExistsInDiff(Optional<DiffOffset> optionalDiff, Direction direction) throws DiffException {
 		if (optionalDiff.isPresent()) {
@@ -81,35 +109,35 @@ public class DiffOffsetService{
 			if ( (direction.equals(Direction.LEFT) && diff.getLeftDirection() != null)
 					|| (direction.equals(Direction.RIGHT) && diff.getRightDirection() != null) )
 			{
-				log.info("Cannot override a direction");
+				log.info(DiffConstants.CANNOT_OVERRIDE_A_DIRECTION);
 				throw new DirectionAlreadyExistsException();
 			}
 		}
 	}
 	
 	/**
-	 * @throws DiffException 
-	 * @throws DiffNotFoundException 
+	 * This method will check the differences of LEFT and RIGHT directions
 	 * 
 	 */
-	public DiffResponseOffset performDiff( Long diffId ) throws DiffException {
-		log.info("Performing diff...", diffId);
+	public DiffOffsetResponseDTO performDiff( Long diffId ) throws DiffException {
+		log.info(DiffConstants.PERFORMING_DIFF);
 		final DiffOffset diff = this.diffRepository.findById(diffId).orElseThrow( () -> new DiffNotFoundException() );
 		
 		//Only will perform the diff if both directions are registered
 		this.validateCanPerformDiff(diff);
 		
 		if (this.leftAndRightEquals(diff)) {
-			return new DiffResponseOffset(DiffResponseReason.EQUALS);
+			return new DiffOffsetResponseDTO(DiffResponseReason.EQUALS);
 		}
 		else if (!this.leftAndRightSizeEquals(diff)){
-			return new DiffResponseOffset(DiffResponseReason.NOT_EQUAL_SIZES);
+			return new DiffOffsetResponseDTO(DiffResponseReason.NOT_EQUAL_SIZES);
 		}
 		
 		return diff.performDiff();
 	}
 	
 	/**
+	 * Check if LEFT and RIGHT directions of a Diff object are equals
 	 * 
 	 * @param diff
 	 * @return
@@ -119,6 +147,7 @@ public class DiffOffsetService{
 	}
 	
 	/**
+	 * Check if left and right are of equal size
 	 * 
 	 * @param diff
 	 * @return
@@ -128,13 +157,14 @@ public class DiffOffsetService{
 	}
 	
 	/**
+	 * Only will perform the diff if both directions are set
 	 * 
 	 * @param diff
 	 * @throws DiffException
 	 */
 	private void validateCanPerformDiff(DiffOffset diff) throws DiffException {
 		if (diff.getLeftDirection() == null || diff.getRightDirection() == null ) {
-			log.info("Any of the directions is null, cannot perform the diff");
+			log.info(DiffConstants.ANY_OF_THE_DIRECTIONS_IS_NULL);
 			throw new DirectionIsNullException();
 		}
 	}

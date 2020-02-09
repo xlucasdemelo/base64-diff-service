@@ -24,7 +24,7 @@ import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import com.lucas.waes.diffservice.domain.DiffOffset;
-import com.lucas.waes.diffservice.domain.DiffResponseOffset;
+import com.lucas.waes.diffservice.domain.DiffOffsetResponseDTO;
 import com.lucas.waes.diffservice.domain.DiffResponseReason;
 import com.lucas.waes.diffservice.domain.Direction;
 import com.lucas.waes.diffservice.exception.Base64ValidationException;
@@ -71,7 +71,7 @@ public class DiffServiceTest {
 	public void testSaveRightOnExistentDiff() throws DiffException {
 		Mockito.when(diffRepository.save(any(DiffOffset.class))).thenReturn(new DiffOffset(100L, "abc", "abc"));
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "abcde", null)));
-		final DiffOffset diff = this.diffService.saveDiff(100L, "abc", Direction.RIGHT);
+		final DiffOffset diff = (DiffOffset) this.diffService.saveDiff(100L, "abc", Direction.RIGHT);
 		
 		assertThat(diff, notNullValue());
 		assertThat(diff.getRightDirection(), notNullValue());
@@ -98,7 +98,7 @@ public class DiffServiceTest {
 	@Test
 	public void testEqualStringsShouldReturnEmptyOffsetList() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "abcde", "abcde")));
-		final DiffResponseOffset diffResponse = this.diffService.performDiff(100L);
+		final DiffOffsetResponseDTO diffResponse = this.diffService.performDiff(100L);
 
 		assertThat(diffResponse, notNullValue());
 		assertThat(diffResponse.getReason(), is(DiffResponseReason.EQUALS));
@@ -121,7 +121,7 @@ public class DiffServiceTest {
 	public void testDifferenteSizesPayloads() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class)))
 				.thenReturn(Optional.of(new DiffOffset(100L, "abcdeabcde", "abcde")));
-		final DiffResponseOffset diffResponse = this.diffService.performDiff(100L);
+		final DiffOffsetResponseDTO diffResponse = this.diffService.performDiff(100L);
 
 		assertThat(diffResponse, notNullValue());
 		assertThat(diffResponse.getReason(), is(DiffResponseReason.NOT_EQUAL_SIZES));
@@ -132,7 +132,7 @@ public class DiffServiceTest {
 	public void testDifferentStringsShouldReturnTwoOffsets() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "aXcXe", "abcde")));
 		
-		final DiffResponseOffset diffResponse = this.diffService.performDiff(100L);
+		final DiffOffsetResponseDTO diffResponse = this.diffService.performDiff(100L);
 
 		assertThat(diffResponse, notNullValue());
 		assertThat(diffResponse.getReason(), is(DiffResponseReason.DIFFERENT_PAYLOADS));
@@ -149,7 +149,7 @@ public class DiffServiceTest {
 	public void testDifferentStringsShouldReturnOneOffsetOfLength3() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "aXXXe", "abcde")));
 		
-		final DiffResponseOffset diffResponse = this.diffService.performDiff(100L);
+		final DiffOffsetResponseDTO diffResponse = this.diffService.performDiff(100L);
 
 		assertThat(diffResponse, notNullValue());
 		assertThat(diffResponse.getReason(), is(DiffResponseReason.DIFFERENT_PAYLOADS));

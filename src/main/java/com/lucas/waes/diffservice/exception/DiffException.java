@@ -1,5 +1,11 @@
 package com.lucas.waes.diffservice.exception;
 
+/**
+ * Generic exception for Diff Operations 
+ * 
+ * @author lucas
+ *
+ */
 public class DiffException extends Exception {
 
 	/**

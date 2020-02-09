@@ -4,6 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Object that will represent the offset differences between two DIFF directions
+ * @author lucas
+ *
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
