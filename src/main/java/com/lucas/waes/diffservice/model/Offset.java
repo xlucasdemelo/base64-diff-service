@@ -1,7 +1,8 @@
-package com.lucas.waes.diffservice.domain;
+package com.lucas.waes.diffservice.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
@@ -12,6 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class Offset {
 	
 	private Integer offset;

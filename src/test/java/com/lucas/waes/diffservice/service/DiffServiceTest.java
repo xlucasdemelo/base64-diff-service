@@ -23,16 +23,22 @@ import org.mockito.Mockito;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import com.lucas.waes.diffservice.domain.DiffOffset;
-import com.lucas.waes.diffservice.domain.DiffOffsetResponseDTO;
-import com.lucas.waes.diffservice.domain.DiffResponseReason;
-import com.lucas.waes.diffservice.domain.Direction;
 import com.lucas.waes.diffservice.exception.Base64ValidationException;
 import com.lucas.waes.diffservice.exception.DiffException;
 import com.lucas.waes.diffservice.exception.DirectionAlreadyExistsException;
 import com.lucas.waes.diffservice.exception.DirectionIsNullException;
-import com.lucas.waes.diffservice.repository.DiffOffsetRepository;
+import com.lucas.waes.diffservice.model.DiffOffset;
+import com.lucas.waes.diffservice.model.DiffOffsetResponseDTO;
+import com.lucas.waes.diffservice.model.DiffResponseReason;
+import com.lucas.waes.diffservice.model.Direction;
+import com.lucas.waes.diffservice.repository.DiffRepository;
 
+/**
+ * Class that will test the logic of Service layer
+ * 
+ * @author lucas
+ *
+ */
 @RunWith(MockitoJUnitRunner.class)
 public class DiffServiceTest {
 
@@ -41,7 +47,7 @@ public class DiffServiceTest {
 	private DiffOffsetService diffService;
 	
 	@Mock
-	private DiffOffsetRepository diffRepository;
+	private DiffRepository diffRepository;
 	
 	@Test
 	public void testSaveNewDiffOnlyWithLeft() throws DiffException {
@@ -56,13 +62,13 @@ public class DiffServiceTest {
 	}
 	
 	@Test(expected = DirectionAlreadyExistsException.class)
-	public void testOverrideLeftOfExistentDiffShouldThrowException() throws DiffException {
+	public void testOverrideLeftOfExistentDiff_ShouldThrowException() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "abcde", null )));
 		this.diffService.saveDiff(100L, "abc", Direction.LEFT);
 	}
 	
 	@Test(expected = DirectionAlreadyExistsException.class)
-	public void testOverrideRightOfExistentDiffShouldThrowException() throws DiffException {
+	public void testOverrideRightOfExistentDiff_ShouldThrowException() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, null, "abcde")));
 		this.diffService.saveDiff(100L, "abc", Direction.RIGHT);
 	}
@@ -96,7 +102,7 @@ public class DiffServiceTest {
 	}
 	
 	@Test
-	public void testEqualStringsShouldReturnEmptyOffsetList() throws DiffException {
+	public void testEqualStrings_ShouldReturnEmptyOffsetList() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "abcde", "abcde")));
 		final DiffOffsetResponseDTO diffResponse = this.diffService.performDiff(100L);
 
@@ -106,13 +112,13 @@ public class DiffServiceTest {
 	}
 	
 	@Test(expected = DirectionIsNullException.class)
-	public void testPErformDiffWithNullLeftShouldThrowException() throws DiffException {
+	public void testPErformDiffWithNullLeft_ShouldThrowException() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, null, "abcde")));
 		this.diffService.performDiff(100L);
 	}
 	
 	@Test(expected = DirectionIsNullException.class)
-	public void testPErformDiffWithNullRightShouldThrowException() throws DiffException {
+	public void testPErformDiffWithNullRight_ShouldThrowException() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "abcde", null)));
 		this.diffService.performDiff(100L);
 	}
@@ -129,7 +135,7 @@ public class DiffServiceTest {
 	}
 	
 	@Test
-	public void testDifferentStringsShouldReturnTwoOffsets() throws DiffException {
+	public void testDifferentStrings_ShouldReturnTwoOffsets() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "aXcXe", "abcde")));
 		
 		final DiffOffsetResponseDTO diffResponse = this.diffService.performDiff(100L);
@@ -146,7 +152,7 @@ public class DiffServiceTest {
 	}
 	
 	@Test
-	public void testDifferentStringsShouldReturnOneOffsetOfLength3() throws DiffException {
+	public void testDifferentStrings_ShouldReturnOneOffsetOfLength3() throws DiffException {
 		Mockito.when(diffRepository.findById(ArgumentMatchers.any(Long.class))).thenReturn(Optional.of(new DiffOffset(100L, "aXXXe", "abcde")));
 		
 		final DiffOffsetResponseDTO diffResponse = this.diffService.performDiff(100L);
@@ -162,7 +168,7 @@ public class DiffServiceTest {
 	}
 	
 	@Test(expected = DiffException.class)
-	public void testDiffNotExistentValueShouldThrowException() throws DiffException {
+	public void testDiffNotExistentValue_ShouldThrowException() throws DiffException {
 		this.diffService.performDiff(100L);
 	}
 }

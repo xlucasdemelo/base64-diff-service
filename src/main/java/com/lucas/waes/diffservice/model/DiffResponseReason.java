@@ -1,4 +1,4 @@
-package com.lucas.waes.diffservice.domain;
+package com.lucas.waes.diffservice.model;
 
 /**
  * Enum with the reason of a diff

@@ -12,10 +12,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.lucas.waes.diffservice.domain.Diff;
-import com.lucas.waes.diffservice.domain.DiffOffsetResponseDTO;
-import com.lucas.waes.diffservice.domain.Direction;
 import com.lucas.waes.diffservice.exception.DiffException;
+import com.lucas.waes.diffservice.model.DiffOffset;
+import com.lucas.waes.diffservice.model.DiffOffsetResponseDTO;
+import com.lucas.waes.diffservice.model.Direction;
 import com.lucas.waes.diffservice.service.DiffService;
 import com.lucas.waes.diffservice.util.DiffConstants;
 
@@ -50,7 +50,7 @@ public class DiffController {
         @ApiResponse(code = 400, message = "It will return a BAD_REQUEST if the payload is not a valid Base64 encoded string and if trying to update a already existent direction")
 	})
 	@PostMapping(value = "/{id}/left", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Diff> saveLeft( @PathVariable("id") Long id, @RequestBody(required = true) String payload) throws DiffException{
+	public ResponseEntity<DiffOffset> saveLeft( @PathVariable("id") Long id, @RequestBody(required = true) String payload) throws DiffException{
 		
 		/**
 		 * MDC.put will inject the diff id into the main thread 
@@ -58,8 +58,8 @@ public class DiffController {
 		 */
 		MDC.put(DiffConstants.DIFF_ID, id.toString());
 		
-		final Diff diffResult = this.diffService.saveDiff( id, payload, Direction.LEFT);
-		return new ResponseEntity<Diff>(diffResult, HttpStatus.OK);
+		final DiffOffset diffResult = this.diffService.saveDiff( id, payload, Direction.LEFT);
+		return new ResponseEntity<DiffOffset>(diffResult, HttpStatus.OK);
 	}
 	
 	/**
@@ -75,7 +75,7 @@ public class DiffController {
         @ApiResponse(code = 400, message = "It will return a BAD_REQUEST if the payload is not a valid Base64 encoded string and if trying to update a already existent direction")
 	})
 	@PostMapping(value= "/{id}/right", consumes = MediaType.APPLICATION_JSON_VALUE)
-	public ResponseEntity<Diff> saveRight( @PathVariable("id") Long id, @RequestBody(required = true) String payload) throws DiffException{
+	public ResponseEntity<DiffOffset> saveRight( @PathVariable("id") Long id, @RequestBody(required = true) String payload) throws DiffException{
 		
 		/**
 		 * MDC.put will inject the diff id into the main thread 
@@ -83,8 +83,8 @@ public class DiffController {
 		 */
 		MDC.put(DiffConstants.DIFF_ID, id.toString());
 		
-		final Diff diffResult = this.diffService.saveDiff(id, payload, Direction.RIGHT);
-		return new ResponseEntity<Diff>(diffResult, HttpStatus.OK);
+		final DiffOffset diffResult = this.diffService.saveDiff(id, payload, Direction.RIGHT);
+		return new ResponseEntity<DiffOffset>(diffResult, HttpStatus.OK);
 	}
 	
 	/**

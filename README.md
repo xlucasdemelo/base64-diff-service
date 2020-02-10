@@ -68,6 +68,7 @@ curl --header "Content-Type: application/json" --request POST --data 'YWJjZA==' 
 curl http://localhost:8080/v1/diff/100
 ```
 
+
 ### Logs
 
 I've implemented a custom log4j2 log appender to log the id of the DIFF for each operation, so we can keep track of the operations performed for each Diff object.
@@ -82,4 +83,12 @@ We can use this to integrate with a machine data application like Splunk and inv
 2020-02-09 17:38:24.858  INFO lucas-VPCEH3QFX --- [nio-8080-exec-4] c.l.w.d.d.DiffOffset                     : diff-id:100 Calculating offset for id: 100 
 2020-02-09 17:38:24.859  INFO lucas-VPCEH3QFX --- [nio-8080-exec-4] c.l.w.d.d.DiffOffset                     : diff-id:100 Offset list of diff: 100 is DiffOffsetResponseDTO(reason=DIFFERENT_PAYLOADS, Offsets=[Offset(offset=2, length=2), Offset(offset=6, length=2)])
 
+```
+
+### Documentation
+
+I am using Swagger2 to provide the documentation for the application, it could be accessed at: 
+
+```
+http://localhost:8080/swagger-ui.html#/
 ```

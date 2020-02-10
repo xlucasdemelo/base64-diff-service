@@ -1,4 +1,4 @@
-package com.lucas.waes.diffservice.domain;
+package com.lucas.waes.diffservice.model;
 
 /**
  * Enum to reference a direction

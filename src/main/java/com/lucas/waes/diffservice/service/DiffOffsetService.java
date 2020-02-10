@@ -1,22 +1,24 @@
 package com.lucas.waes.diffservice.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.lucas.waes.diffservice.domain.Diff;
-import com.lucas.waes.diffservice.domain.DiffOffset;
-import com.lucas.waes.diffservice.domain.DiffOffsetResponseDTO;
-import com.lucas.waes.diffservice.domain.DiffResponseReason;
-import com.lucas.waes.diffservice.domain.Direction;
 import com.lucas.waes.diffservice.exception.Base64ValidationException;
 import com.lucas.waes.diffservice.exception.DiffException;
 import com.lucas.waes.diffservice.exception.DiffNotFoundException;
 import com.lucas.waes.diffservice.exception.DirectionAlreadyExistsException;
 import com.lucas.waes.diffservice.exception.DirectionIsNullException;
-import com.lucas.waes.diffservice.repository.DiffOffsetRepository;
+import com.lucas.waes.diffservice.model.DiffOffset;
+import com.lucas.waes.diffservice.model.DiffOffsetResponseDTO;
+import com.lucas.waes.diffservice.model.DiffResponseReason;
+import com.lucas.waes.diffservice.model.Direction;
+import com.lucas.waes.diffservice.model.Offset;
+import com.lucas.waes.diffservice.repository.DiffRepository;
 import com.lucas.waes.diffservice.util.DiffConstants;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,15 +36,15 @@ import lombok.extern.slf4j.Slf4j;
 public class DiffOffsetService implements DiffService{
 	
 	@Autowired
-	private DiffOffsetRepository diffRepository;
+	private DiffRepository diffRepository;
 	
 	/**
 	 * Method that will save a Diff data accordling to specified direction
 	 */
-	public Diff saveDiff(Long id, String payload, Direction direction) throws DiffException {
+	public DiffOffset saveDiff(Long id, String payload, Direction direction) throws DiffException {
 		this.checkStringIsBase64(payload);
 		final Optional<DiffOffset> dbDiff = this.diffRepository.findById(id);
-		
+
 		/**
 		 * I am assuming the directions of a diff cannot be changed.
 		 * This method will check if the request is trying to override a direction of a existent diff
@@ -52,7 +54,8 @@ public class DiffOffsetService implements DiffService{
 		final DiffOffset diff = createDiffWithDirection(dbDiff, id, payload, direction);
 		
 		log.info(DiffConstants.SAVING_DIFF, diff.toString());
-		return (Diff)this.diffRepository.save(diff);
+		
+		return this.diffRepository.save(diff);
 	}
 	
 	/**
@@ -121,6 +124,7 @@ public class DiffOffsetService implements DiffService{
 	 */
 	public DiffOffsetResponseDTO performDiff( Long diffId ) throws DiffException {
 		log.info(DiffConstants.PERFORMING_DIFF);
+		
 		final DiffOffset diff = this.diffRepository.findById(diffId).orElseThrow( () -> new DiffNotFoundException() );
 		
 		//Only will perform the diff if both directions are registered
@@ -133,7 +137,7 @@ public class DiffOffsetService implements DiffService{
 			return new DiffOffsetResponseDTO(DiffResponseReason.NOT_EQUAL_SIZES);
 		}
 		
-		return diff.performDiff();
+		return this.calculateOffsets(diff);
 	}
 	
 	/**
@@ -169,4 +173,39 @@ public class DiffOffsetService implements DiffService{
 		}
 	}
 	
+	/**
+	 * Logic of the diff based on the offset and length of two directions strings;
+	 * 
+	 * The Diff will be on the characters of the Base64 encoded string, there will be no decode.
+	 */
+	private DiffOffsetResponseDTO calculateOffsets(DiffOffset diff) throws DiffException {
+		
+		log.info("Calculating offset for id: {} ", diff.getId());
+		final DiffOffsetResponseDTO diffResult = new DiffOffsetResponseDTO(DiffResponseReason.DIFFERENT_PAYLOADS);
+		
+		Integer mismatchOffset = null;
+        Integer length = 0;
+        
+        List<Offset> diffOffsets = new ArrayList<Offset>();
+        
+        for(int i = 0; i <= diff.getLeftDirection().length(); i++){
+            if( i < diff.getLeftDirection().length() && diff.getLeftDirection().charAt(i) != diff.getRightDirection().charAt(i)
+            	){
+                if(mismatchOffset == null){
+                    mismatchOffset = i;
+                }
+                length++;
+            } else {
+            	if (mismatchOffset != null) {
+            		diffOffsets.add( new Offset(mismatchOffset, length) );
+            	}
+                mismatchOffset = null;
+                length = 0;
+            }
+        }
+		
+        diffResult.setOffsets(diffOffsets);;
+        log.info("Offset list of diff is: {}", diff.getId(), diffResult.toString());
+		return diffResult;
+	}
 }

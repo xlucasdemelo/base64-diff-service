@@ -1,9 +1,9 @@
 package com.lucas.waes.diffservice.service;
 
-import com.lucas.waes.diffservice.domain.Diff;
-import com.lucas.waes.diffservice.domain.DiffOffsetResponseDTO;
-import com.lucas.waes.diffservice.domain.Direction;
 import com.lucas.waes.diffservice.exception.DiffException;
+import com.lucas.waes.diffservice.model.DiffOffset;
+import com.lucas.waes.diffservice.model.DiffOffsetResponseDTO;
+import com.lucas.waes.diffservice.model.Direction;
 
 /**
  * Interface that defines the contract for DiffService Methods
@@ -18,10 +18,10 @@ public interface DiffService {
 	 * @param id  - Unique identifier of the Diff object
 	 * @param payload - Base64 encoded binary data
 	 * @param direction - RIGHT or LEFT
-	 * @return {@link Diff}- Diff object created
+	 * @return {@link DiffOffset}- Diff object created
 	 * @throws DiffException
 	 */
-	public Diff saveDiff(Long id, String payload, Direction direction) throws DiffException;
+	public DiffOffset saveDiff(Long id, String payload, Direction direction) throws DiffException;
 	
 	/**
 	 * This method is responsible to check differences between LEFT and RIGHT direction of the diff with provided id 
