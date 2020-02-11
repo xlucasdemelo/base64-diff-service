@@ -9,6 +9,7 @@ Assessment Application for WAES
 This application uses maven for dependency management, it is mandatory to install it.
 
 ```
+Java 8: https://docs.oracle.com/javase/8/docs/technotes/guides/install/install_overview.html
 Maven: https://maven.apache.org/download.cgi
 
 ```
